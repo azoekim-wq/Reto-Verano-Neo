@@ -25,7 +25,6 @@ export function LeaderboardView({ onOpenProfile }: Props) {
 
   const rows = view === 'total' ? scores : weekly;
   const podium = rows.slice(0, 3);
-  const rest = rows.slice(3);
 
   return (
     <div>

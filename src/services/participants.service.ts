@@ -74,7 +74,7 @@ export function streakWeeks(p: Participant): number {
   if (weeks.length === 0) return 0;
   let streak = 1;
   for (let i = 1; i < weeks.length; i++) {
-    if (weeks[i - 1] - weeks[i] === 1) streak++;
+    if (weeks[i - 1]! - weeks[i]! === 1) streak++;
     else break;
   }
   return streak;
@@ -146,7 +146,7 @@ export async function listParticipants(): Promise<Participant[]> {
       color: '#C6FF3D',
       ...d.data(),
       id: d.id,
-    } as Participant));
+    } as unknown as Participant));
   } catch (err) {
     console.error('listParticipants error:', err);
     return [];
@@ -166,7 +166,7 @@ export async function getParticipant(id: string): Promise<Participant | null> {
       color: '#C6FF3D',
       ...snap.data(),
       id: snap.id,
-    } as Participant;
+    } as unknown as Participant;
   } catch (err) {
     console.error('getParticipant error:', err);
     return null;

@@ -1,5 +1,5 @@
 import type { Participant } from '@/types/domain';
-import { startEntry, latestEntry, calcBodyFat, metricSeries } from './participants.service';
+import { startEntry, latestEntry, calcBodyFat } from './participants.service';
 
 export interface ScoreBreakdown {
   userId: string;
@@ -77,8 +77,8 @@ function calcWeeklyFatLost(p: Participant): number | null {
   if (!h) return null;
   const sorted = [...p.weeklyData].sort((a, b) => a.week - b.week);
   if (sorted.length < 2) return null;
-  const prev = sorted[sorted.length - 2];
-  const last = sorted[sorted.length - 1];
+  const prev = sorted[sorted.length - 2]!;
+  const last = sorted[sorted.length - 1]!;
   const fatPrev = prev.bodyFat ?? calcBodyFat(p.gender, h, toNum(prev.waist), toNum(prev.neck), toNum(prev.hip));
   const fatLast = last.bodyFat ?? calcBodyFat(p.gender, h, toNum(last.waist), toNum(last.neck), toNum(last.hip));
   if (fatPrev === null || fatLast === null) return null;
