@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100dvh;
+    background: #0a0a0a;
+  }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #f4f4f5;
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::selection {
+    background: #c6ff3d;
+    color: #000;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a3a3a;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-feature-settings: 'tnum';
+    letter-spacing: -0.02em;
+  }
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-feature-settings: 'tnum';
+  }
+  .card {
+    @apply bg-panel border border-line rounded-2xl;
+  }
+  .card-hover {
+    @apply transition-[border-color,transform] duration-200 hover:border-zinc-700 hover:-translate-y-0.5;
+  }
+  .grad-acid {
+    background: linear-gradient(135deg, rgba(198, 255, 61, 0.08) 0%, rgba(198, 255, 61, 0) 60%);
+  }
+  .grad-hot {
+    background: linear-gradient(135deg, rgba(255, 51, 102, 0.08) 0%, rgba(255, 51, 102, 0) 60%);
+  }
+  .heat-0 { background: #1a1a1a; }
+  .heat-1 { background: rgba(198, 255, 61, 0.15); }
+  .heat-2 { background: rgba(198, 255, 61, 0.4); }
+  .heat-3 { background: rgba(198, 255, 61, 0.7); }
+  .heat-4 {
+    background: #c6ff3d;
+    box-shadow: 0 0 8px rgba(198, 255, 61, 0.5);
+  }
+}

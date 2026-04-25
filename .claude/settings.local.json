@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(npx kill-port *)",
+      "WebFetch(domain:familia-martinez.es)",
+      "WebFetch(domain:www.cincotenedores.es)",
+      "WebFetch(domain:embutidosmartinez.es)",
+      "WebFetch(domain:platostradicionales.com)",
+      "WebFetch(domain:lapilafood.com)",
+      "Bash(xargs grep *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
