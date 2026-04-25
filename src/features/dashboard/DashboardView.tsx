@@ -6,9 +6,28 @@ import { Chip } from '@/components/ui/Chip';
 import { Avatar } from '@/components/ui/Avatar';
 import { listParticipants, deltaPct, latestEntry, startEntry } from '@/services/participants.service';
 import { rankScores, type ScoreBreakdown } from '@/services/scoring.service';
-import { mockActivities } from '@/mocks/fixtures';
-import { relativeTime, formatPct, formatKg } from '@/lib/utils';
+import { formatPct, formatKg } from '@/lib/utils';
 import type { Participant } from '@/types/domain';
+
+function recentWeighIns(participants: Participant[]) {
+  const entries: { key: string; name: string; initials: string; color: string; week: number; detail: string }[] = [];
+  for (const p of participants) {
+    for (const e of p.weeklyData ?? []) {
+      if (e.weight != null) {
+        const initials = p.name.trim().split(/\s+/).map((w) => w[0] ?? '').slice(0, 2).join('').toUpperCase();
+        entries.push({
+          key: `${p.id}-${e.week}`,
+          name: p.name,
+          initials,
+          color: p.color,
+          week: e.week,
+          detail: `${e.weight} kg${e.waist ? ` · cintura ${e.waist} cm` : ''}`,
+        });
+      }
+    }
+  }
+  return entries.sort((a, b) => b.week - a.week).slice(0, 8);
+}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -107,18 +126,24 @@ export function DashboardView({ onOpenProfile }: Props) {
           </motion.div>
 
           <motion.div className="col-span-12 card card-hover p-6" variants={fadeUp} initial="hidden" animate="show" custom={4}>
-            <div className="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-5">Actividad reciente</div>
+            <div className="text-xs uppercase tracking-widest text-zinc-500 font-semibold mb-5">Últimas pesadas registradas</div>
             <div className="space-y-4">
-              {mockActivities.map((a) => (
-                <div key={a.id} className="flex items-center gap-4">
-                  <Avatar initials={a.userInitials} color={a.userColor} />
+              {recentWeighIns(participants).map((a) => (
+                <div key={a.key} className="flex items-center gap-4">
+                  <Avatar initials={a.initials} color={a.color} />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm"><span className="font-semibold">{a.userName}</span>{' '}<span className="text-zinc-500">{a.title}</span></div>
-                    <div className="text-xs text-zinc-500 truncate">{a.detail}</div>
+                    <div className="text-sm">
+                      <span className="font-semibold">{a.name}</span>{' '}
+                      <span className="text-zinc-500">registró semana {a.week}</span>
+                    </div>
+                    <div className="text-xs text-zinc-500">{a.detail}</div>
                   </div>
-                  <div className="text-[10px] text-zinc-600 mono uppercase flex-shrink-0">{relativeTime(a.createdAt)}</div>
+                  <div className="text-[10px] text-zinc-600 mono uppercase flex-shrink-0">S{String(a.week).padStart(2, '0')}</div>
                 </div>
               ))}
+              {recentWeighIns(participants).length === 0 && (
+                <div className="text-zinc-500 text-sm text-center py-4">Sin registros aún</div>
+              )}
             </div>
           </motion.div>
         </div>
