@@ -30,13 +30,13 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: 'streak_8',     name: 'Butifarra',               description: '8 semanas con el punto perfecto — esto ya es calidad',             icon: 'medal'    },
   { id: 'lose_1kg',     name: 'El Torrezno',             description: 'Perdiste tu primer kilo — ya empieza a crujir',                    icon: 'zap'      },
   { id: 'lose_5kg',     name: 'Lasaña',                  description: '5 kg menos — capa a capa, como una buena lasaña',                  icon: 'mountain' },
-  { id: 'lose_10kg',    name: 'Yanda',                   description: '10 kg menos — llevas una Yanda entera de ventaja',                 icon: 'star'     },
+  { id: 'lose_10kg',    name: 'Zeppelin',                description: '10 kg menos — llevas un Zeppelin entero de ventaja',              icon: 'star'     },
   { id: 'lose_5pct',    name: 'Pollo 99%',               description: 'Un 5% menos — puro músculo, sin nada que sobre',                   icon: 'target'   },
   { id: 'lose_10pct',   name: 'Burrito',                 description: 'Un 10% menos — más liado con el reto que un burrito bien enrollado', icon: 'rocket'  },
   { id: 'fat_5pct',     name: 'Picada de pollo',         description: '5% menos de grasa — como la picada, sin excesos',                  icon: 'heart'    },
   { id: 'waist_5cm',    name: 'Chistorra',               description: '5 cm menos de cintura — más fino que una chistorra',               icon: 'ruler'    },
   { id: 'top3',         name: 'No tan bien como tú',     description: 'Top 3 del ranking — nadie en el grupo lo está haciendo tan bien',  icon: 'crown'    },
-  { id: 'all_metrics',  name: 'Bandeja Completa',        description: 'Todas las medidas registradas — plato listo para servir',          icon: 'check'    },
+  { id: 'all_metrics',  name: 'Yanda',                   description: 'Todas las medidas registradas — plato listo para servir',          icon: 'check'    },
 ];
 
 export function calcAchievements(p: Participant, allScores?: { userId: string; rank: number }[]): ParticipantAchievement[] {
