@@ -173,6 +173,13 @@ export async function getParticipant(id: string): Promise<Participant | null> {
   }
 }
 
+/** Elimina todas las claves con valor undefined para que Firestore no las rechace */
+function stripUndefined<T extends object>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined),
+  ) as Partial<T>;
+}
+
 export async function addWeeklyEntry(participantId: string, entry: WeeklyEntry): Promise<void> {
   if (IS_MOCK) {
     const p = mockParticipants.find((x) => x.id === participantId);
@@ -184,7 +191,8 @@ export async function addWeeklyEntry(participantId: string, entry: WeeklyEntry):
   try {
     const participant = await getParticipant(participantId);
     if (!participant) throw new Error(`Participante ${participantId} no encontrado`);
-    const updated = [...participant.weeklyData.filter((e) => e.week !== entry.week), entry];
+    const cleanEntry = stripUndefined(entry) as WeeklyEntry;
+    const updated = [...participant.weeklyData.filter((e) => e.week !== entry.week), cleanEntry];
     const { db } = getFirebase();
     await updateDoc(doc(db, 'retos', RETO_ID, 'participantes', participantId), {
       weeklyData: updated,
