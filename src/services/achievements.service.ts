@@ -55,7 +55,7 @@ export function calcAchievements(p: Participant, allScores?: { userId: string; r
   if (h) {
     const sorted = [...(p.weeklyData ?? [])].sort((a, b) => a.week - b.week);
     for (const e of sorted) {
-      const fat = e.bodyFat ?? calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip));
+      const fat = calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip)) ?? (e.bodyFat ?? null);
       if (fat !== null) { if (firstFat === null) firstFat = fat; lastFat = fat; }
     }
   }

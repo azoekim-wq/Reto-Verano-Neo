@@ -225,9 +225,9 @@ export function ProfileView({ participantId, onBack }: Props) {
           <div className="col-span-2 text-right">Br/Pe</div>
         </div>
         {[...(p.weeklyData ?? [])].sort((a, b) => b.week - a.week).map((e) => {
-          const bf2 = e.bodyFat ?? (heightNum
+          const bf2 = (heightNum
             ? calcBodyFat(p.gender, heightNum, parseFloat(String(e.waist)) || null, parseFloat(String(e.neck)) || null, parseFloat(String(e.hip)) || null)
-            : null);
+            : null) ?? (e.bodyFat ?? null);
           return (
             <div key={e.week} className="grid grid-cols-12 gap-2 px-5 py-3 border-b border-line/50 text-sm items-center hover:bg-panel2/50 transition">
               <div className="col-span-1 mono font-semibold text-zinc-400">S{String(e.week).padStart(2,'0')}</div>

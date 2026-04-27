@@ -16,8 +16,11 @@ function toNum(v: number | string | undefined | null): number | null {
 
 // ── Cálculo % grasa (método Navy) ─────────────────────────────────────────────
 
+const CM_TO_IN = 1 / 2.54;
+
 /**
  * Devuelve el % de grasa corporal usando la fórmula de la Marina americana.
+ * Los coeficientes oficiales requieren medidas en pulgadas; se convierten aquí.
  * Requiere cuello + cintura (hombres) o cuello + cintura + cadera (mujeres).
  * Si falta algún dato necesario devuelve null sin lanzar error.
  */
@@ -29,16 +32,17 @@ export function calcBodyFat(
   hipCm: number | null,
 ): number | null {
   if (!heightCm || !waistCm || !neckCm) return null;
-  const h = heightCm;
-  const w = waistCm;
-  const n = neckCm;
+  const h = heightCm * CM_TO_IN;
+  const w = waistCm * CM_TO_IN;
+  const n = neckCm * CM_TO_IN;
 
   if (gender === 'M') {
-    const val = 86.01 * Math.log10(w - n) - 70.041 * Math.log10(h) + 36.76;
+    const val = 86.010 * Math.log10(w - n) - 70.041 * Math.log10(h) + 36.76;
     return isFinite(val) && val > 0 ? Math.round(val * 10) / 10 : null;
   } else {
     if (!hipCm) return null;
-    const val = 163.205 * Math.log10(w + hipCm - n) - 97.684 * Math.log10(h) - 78.387;
+    const hip = hipCm * CM_TO_IN;
+    const val = 163.205 * Math.log10(w + hip - n) - 97.684 * Math.log10(h) - 78.387;
     return isFinite(val) && val > 0 ? Math.round(val * 10) / 10 : null;
   }
 }
@@ -86,20 +90,14 @@ export function latestBodyFat(p: Participant): number | null {
   const h = toNum(p.height);
   if (!h) return null;
 
-  // Busca desde la semana más reciente hacia atrás
+  // Busca desde la semana más reciente hacia atrás.
+  // Prioridad: calcular desde medidas (siempre con la fórmula corregida);
+  // solo se usa bodyFat guardado si no hay medidas (datos importados sin perímetros).
   const sorted = [...p.weeklyData].sort((a, b) => b.week - a.week);
   for (const e of sorted) {
-    // Si tiene bodyFat ya calculado, úsalo directamente
-    if (e.bodyFat != null && isFinite(e.bodyFat)) return e.bodyFat;
-    // Si no, intenta calcular
-    const bf = calcBodyFat(
-      p.gender,
-      h,
-      toNum(e.waist),
-      toNum(e.neck),
-      toNum(e.hip),
-    );
+    const bf = calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip));
     if (bf !== null) return bf;
+    if (e.bodyFat != null && isFinite(e.bodyFat)) return e.bodyFat;
   }
   return null;
 }
@@ -119,13 +117,13 @@ export function metricSeries(
     .sort((a, b) => a.week - b.week)
     .map((e) => {
       if (key === 'bodyFat') {
-        // Prioridad: valor guardado → calculado
-        if (e.bodyFat != null && isFinite(e.bodyFat)) return { week: e.week, value: e.bodyFat };
-        if (!h) return { week: e.week, value: null };
-        return {
-          week: e.week,
-          value: calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip)),
-        };
+        // Prioridad: calcular desde medidas; bodyFat guardado solo como fallback.
+        if (h) {
+          const bf = calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip));
+          if (bf !== null) return { week: e.week, value: bf };
+        }
+        const stored = e.bodyFat != null && isFinite(e.bodyFat) ? e.bodyFat : null;
+        return { week: e.week, value: stored };
       }
       const raw = e[key];
       return { week: e.week, value: toNum(raw as number | string | undefined) };

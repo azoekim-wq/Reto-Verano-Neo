@@ -36,7 +36,7 @@ function calcStreakImproving(p: Participant): number {
   let prevFat: number | null = null;
   for (const e of sorted) {
     const w = toNum(e.weight);
-    const fat = e.bodyFat ?? (h ? calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip)) : null);
+    const fat = (h ? calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip)) : null) ?? (e.bodyFat ?? null);
     if (w !== null || fat !== null) {
       const weightImproved = prevWeight !== null && w !== null && w < prevWeight;
       const fatImproved = prevFat !== null && fat !== null && fat < prevFat;
@@ -58,7 +58,7 @@ function calcFatLost(p: Participant): { pct: number | null; kg: number | null } 
   let firstWeight: number | null = null;
   let lastFat: number | null = null;
   for (const e of sorted) {
-    const fat = e.bodyFat ?? calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip));
+    const fat = calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip)) ?? (e.bodyFat ?? null);
     const w = toNum(e.weight);
     if (fat !== null && w !== null) {
       if (firstFat === null) { firstFat = fat; firstWeight = w; }
@@ -79,8 +79,8 @@ function calcWeeklyFatLost(p: Participant): number | null {
   if (sorted.length < 2) return null;
   const prev = sorted[sorted.length - 2]!;
   const last = sorted[sorted.length - 1]!;
-  const fatPrev = prev.bodyFat ?? calcBodyFat(p.gender, h, toNum(prev.waist), toNum(prev.neck), toNum(prev.hip));
-  const fatLast = last.bodyFat ?? calcBodyFat(p.gender, h, toNum(last.waist), toNum(last.neck), toNum(last.hip));
+  const fatPrev = calcBodyFat(p.gender, h, toNum(prev.waist), toNum(prev.neck), toNum(prev.hip)) ?? (prev.bodyFat ?? null);
+  const fatLast = calcBodyFat(p.gender, h, toNum(last.waist), toNum(last.neck), toNum(last.hip)) ?? (last.bodyFat ?? null);
   if (fatPrev === null || fatLast === null) return null;
   return fatPrev - fatLast;
 }
