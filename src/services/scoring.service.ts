@@ -27,11 +27,12 @@ function toNum(v: number | string | undefined | null): number | null {
   return isFinite(n) ? n : null;
 }
 
-function calcStreakImproving(p: Participant): number {
-  if (!p.weeklyData?.length) return 0;
+function calcStreakScoreAndActiveStreak(p: Participant): { streakPoints: number; activeStreak: number } {
+  if (!p.weeklyData?.length) return { streakPoints: 0, activeStreak: 0 };
   const h = toNum(p.height);
   const sorted = [...p.weeklyData].sort((a, b) => a.week - b.week);
-  let streak = 0;
+  let totalStreakPoints = 0;
+  let activeStreak = 0;
   let prevWeight: number | null = null;
   let prevFat: number | null = null;
   for (const e of sorted) {
@@ -40,13 +41,23 @@ function calcStreakImproving(p: Participant): number {
     if (w !== null || fat !== null) {
       const weightImproved = prevWeight !== null && w !== null && w < prevWeight;
       const fatImproved = prevFat !== null && fat !== null && fat < prevFat;
-      if (weightImproved || fatImproved) streak++;
-      else streak = 0;
+      if (weightImproved || fatImproved) {
+        activeStreak++;
+        const pointsThisWeek = 1.0 + (activeStreak - 1) * 0.5;
+        totalStreakPoints += pointsThisWeek;
+      } else {
+        if (prevWeight !== null || prevFat !== null) {
+          activeStreak = 0;
+        }
+      }
     }
     if (w !== null) prevWeight = w;
     if (fat !== null) prevFat = fat;
   }
-  return streak;
+  return {
+    streakPoints: Math.round(totalStreakPoints * 10) / 10,
+    activeStreak,
+  };
 }
 
 function calcFatLost(p: Participant): { pct: number | null; kg: number | null } {
@@ -93,7 +104,7 @@ export function calcScore(p: Participant): ScoreBreakdown {
   const kgLost = sw && lw ? Math.max(0, sw - lw) : 0;
   const { pct: fatLost, kg: fatKgLostRaw } = calcFatLost(p);
   const fatKgLost = fatKgLostRaw != null ? Math.min(fatKgLostRaw, kgLost) : null;
-  const streakWeeksImproving = calcStreakImproving(p);
+  const { streakPoints, activeStreak: streakWeeksImproving } = calcStreakScoreAndActiveStreak(p);
 
   // Weekly
   const sorted = [...(p.weeklyData ?? [])].sort((a, b) => a.week - b.week);
@@ -104,7 +115,6 @@ export function calcScore(p: Participant): ScoreBreakdown {
 
   const weightPoints = Math.round(kgLost * 2 * 10) / 10;
   const fatPoints = fatLost !== null ? Math.round(Math.max(0, fatLost) * 3 * 10) / 10 : 0;
-  const streakPoints = streakWeeksImproving * 2;
   const totalPoints = Math.round((weightPoints + fatPoints + streakPoints) * 10) / 10;
 
   const weeklyWeightPoints = Math.round(weeklyKgLost * 2 * 10) / 10;
