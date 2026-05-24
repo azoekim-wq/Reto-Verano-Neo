@@ -3,7 +3,7 @@
 
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getFirestore, type Firestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 
 const firebaseConfig = {
@@ -32,6 +32,16 @@ export function getFirebase() {
     _app = initializeApp(firebaseConfig);
     _auth = getAuth(_app);
     _db = getFirestore(_app);
+    
+    // Habilitar soporte offline (IndexedDB Persistence)
+    enableIndexedDbPersistence(_db).catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.warn('La persistencia de Firestore falló: múltiples pestañas abiertas.');
+      } else if (err.code === 'unimplemented') {
+        console.warn('El navegador no soporta persistencia de Firestore.');
+      }
+    });
+
     // Analytics solo se inicializa en navegador y si está soportado (https + consentimiento).
     isSupported().then((ok) => {
       if (ok && _app && firebaseConfig.measurementId) _analytics = getAnalytics(_app);
