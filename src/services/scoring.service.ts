@@ -27,6 +27,11 @@ function toNum(v: number | string | undefined | null): number | null {
   return isFinite(n) ? n : null;
 }
 
+const GAINERS = ['Alberto Camelas'];
+function isGainer(p: Participant): boolean {
+  return GAINERS.includes(p.name);
+}
+
 function calcStreakScoreAndActiveStreak(p: Participant): { streakPoints: number; activeStreak: number } {
   if (!p.weeklyData?.length) return { streakPoints: 0, activeStreak: 0 };
   const h = toNum(p.height);
@@ -35,12 +40,17 @@ function calcStreakScoreAndActiveStreak(p: Participant): { streakPoints: number;
   let activeStreak = 0;
   let prevWeight: number | null = null;
   let prevFat: number | null = null;
+  const isGain = isGainer(p);
   for (const e of sorted) {
     const w = toNum(e.weight);
     const fat = (h ? calcBodyFat(p.gender, h, toNum(e.waist), toNum(e.neck), toNum(e.hip)) : null) ?? (e.bodyFat ?? null);
     if (w !== null || fat !== null) {
-      const weightImproved = prevWeight !== null && w !== null && w < prevWeight;
-      const fatImproved = prevFat !== null && fat !== null && fat < prevFat;
+      const weightImproved = isGain
+        ? (prevWeight !== null && w !== null && w > prevWeight)
+        : (prevWeight !== null && w !== null && w < prevWeight);
+      const fatImproved = isGain
+        ? (prevFat !== null && fat !== null && fat > prevFat)
+        : (prevFat !== null && fat !== null && fat < prevFat);
       if (weightImproved || fatImproved) {
         activeStreak++;
         const pointsThisWeek = 1.0 + (activeStreak - 1) * 0.5;
@@ -77,8 +87,9 @@ function calcFatLost(p: Participant): { pct: number | null; kg: number | null } 
     }
   }
   if (firstFat === null || lastFat === null || firstWeight === null) return { pct: null, kg: null };
-  const pct = firstFat - lastFat;
-  const kg = ((firstFat - lastFat) / 100) * firstWeight;
+  const isGain = isGainer(p);
+  const pct = isGain ? (lastFat - firstFat) : (firstFat - lastFat);
+  const kg = isGain ? ((lastFat - firstFat) / 100) * firstWeight : ((firstFat - lastFat) / 100) * firstWeight;
   return { pct, kg: Math.round(kg * 10) / 10 };
 }
 
@@ -93,7 +104,8 @@ function calcWeeklyFatLost(p: Participant): number | null {
   const fatPrev = calcBodyFat(p.gender, h, toNum(prev.waist), toNum(prev.neck), toNum(prev.hip)) ?? (prev.bodyFat ?? null);
   const fatLast = calcBodyFat(p.gender, h, toNum(last.waist), toNum(last.neck), toNum(last.hip)) ?? (last.bodyFat ?? null);
   if (fatPrev === null || fatLast === null) return null;
-  return fatPrev - fatLast;
+  const isGain = isGainer(p);
+  return isGain ? (fatLast - fatPrev) : (fatPrev - fatLast);
 }
 
 export function calcScore(p: Participant): ScoreBreakdown {
@@ -101,7 +113,10 @@ export function calcScore(p: Participant): ScoreBreakdown {
   const l = latestEntry(p);
   const sw = toNum(s?.weight);
   const lw = toNum(l?.weight);
-  const kgLost = sw && lw ? Math.max(0, sw - lw) : 0;
+  const isGain = isGainer(p);
+  const kgLost = isGain
+    ? (sw && lw ? Math.max(0, lw - sw) : 0)
+    : (sw && lw ? Math.max(0, sw - lw) : 0);
   const { pct: fatLost, kg: fatKgLostRaw } = calcFatLost(p);
   const fatKgLost = fatKgLostRaw != null ? Math.min(fatKgLostRaw, kgLost) : null;
   const { streakPoints, activeStreak: streakWeeksImproving } = calcStreakScoreAndActiveStreak(p);
@@ -110,7 +125,9 @@ export function calcScore(p: Participant): ScoreBreakdown {
   const sorted = [...(p.weeklyData ?? [])].sort((a, b) => a.week - b.week);
   const prevEntry = sorted.length >= 2 ? sorted[sorted.length - 2] : null;
   const prevW = toNum(prevEntry?.weight);
-  const weeklyKgLost = prevW && lw ? Math.max(0, prevW - lw) : 0;
+  const weeklyKgLost = isGain
+    ? (prevW && lw ? Math.max(0, lw - prevW) : 0)
+    : (prevW && lw ? Math.max(0, prevW - lw) : 0);
   const weeklyFatLost = calcWeeklyFatLost(p);
 
   const weightPoints = Math.round(kgLost * 2 * 10) / 10;
